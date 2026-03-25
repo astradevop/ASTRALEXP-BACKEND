@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>NeoLedger Chat</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;700;800&amp;family=Inter:wght@400;500;600&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            colors: {
+              "surface-tint": "#bac3ff",
+              "error-container": "#93000a",
+              "on-tertiary": "#00390a",
+              "on-tertiary-container": "#83e881",
+              "on-surface": "#e1e2e7",
+              "primary-container": "#3f51b5",
+              "on-secondary-container": "#adb2df",
+              "on-error": "#690005",
+              "on-primary-fixed-variant": "#293ca0",
+              "surface-variant": "#323538",
+              "on-primary-fixed": "#00105c",
+              "on-tertiary-fixed": "#002204",
+              "secondary-fixed-dim": "#bec4f2",
+              "outline-variant": "#454652",
+              "secondary-container": "#3e446b",
+              "surface-container": "#1d2023",
+              "on-primary": "#08218a",
+              "primary": "#bac3ff",
+              "on-primary-container": "#cacfff",
+              "error": "#ffb4ab",
+              "surface-container-highest": "#323538",
+              "background": "#111417",
+              "tertiary-container": "#00691b",
+              "surface-container-low": "#191c1f",
+              "on-surface-variant": "#c5c5d4",
+              "surface-container-high": "#272a2e",
+              "surface-container-lowest": "#0b0e11",
+              "surface": "#111417",
+              "tertiary-fixed-dim": "#78dc77",
+              "on-tertiary-fixed-variant": "#005313",
+              "secondary-fixed": "#dee0ff",
+              "secondary": "#bec4f2",
+              "surface-bright": "#37393d",
+              "tertiary": "#78dc77",
+              "on-background": "#e1e2e7",
+              "surface-dim": "#111417",
+              "on-error-container": "#ffdad6",
+              "primary-fixed": "#dee0ff",
+              "on-secondary": "#272e53",
+              "inverse-primary": "#4355b9",
+              "inverse-on-surface": "#2e3134",
+              "tertiary-fixed": "#94f990",
+              "outline": "#8f909e",
+              "inverse-surface": "#e1e2e7",
+              "primary-fixed-dim": "#bac3ff",
+              "on-secondary-fixed-variant": "#3e446b",
+              "on-secondary-fixed": "#12183d"
+            },
+            fontFamily: {
+              "headline": ["Manrope"],
+              "body": ["Inter"],
+              "label": ["Inter"]
+            },
+            borderRadius: {"DEFAULT": "1rem", "lg": "2rem", "xl": "3rem", "full": "9999px"},
+          },
+        },
+      }
+    </script>
+<style>
+      .material-symbols-outlined {
+        font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+      }
+      .no-scrollbar::-webkit-scrollbar { display: none; }
+      .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-background text-on-surface font-body selection:bg-primary/30 min-h-screen flex flex-col">
+<!-- TopAppBar -->
+<header class="fixed top-0 w-full z-50 bg-surface/60 dark:bg-[#111417]/60 backdrop-blur-2xl flex items-center justify-between px-10 py-4 w-full shadow-none">
+<div class="flex items-center gap-4">
+<div class="w-10 h-10 rounded-full overflow-hidden bg-surface-container-high border border-outline-variant/10">
+<img alt="User Profile" class="w-full h-full object-cover" data-alt="professional headshot of a young man with a friendly expression, soft studio lighting, clean minimalist background" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCP46NxOCtaKnxmBwj76Ka2vvOJl1knpsqAtNUGirbfq8DuRmpuozKtDPtCREUMRs7n9AW1s0YckcUfO7AbkqBOXlneXba5UPDsCHSt3YBsTLXhztxYDlDgnfHuovUJlzUBNOPk45JXrK64mIwnktTMXc8iKEyCduynvK3bRjvvqGsIMFxj9eNJ_sKGFQSw0NxdJc2FPJ5diwwMTYbWyeGrIoPzUkbm3Y-isjzcWWdJoOmMRFsBe1B_-Qq3kSil7lTFmhXQ59_EElTG"/>
+</div>
+<h1 class="font-manrope font-black text-[#BAC3FF] font-bold text-2xl tracking-tight">Financial Fluidity</h1>
+</div>
+<button class="w-10 h-10 flex items-center justify-center rounded-full hover:bg-[#37393D]/50 transition-colors active:scale-95 duration-200">
+<span class="material-symbols-outlined text-[#BAC3FF]">search</span>
+</button>
+</header>
+<!-- Main Chat Canvas -->
+<main class="flex-1 mt-20 mb-32 px-6 md:px-10 overflow-y-auto no-scrollbar flex flex-col gap-6">
+<!-- Date Marker -->
+<div class="flex justify-center my-4">
+<span class="px-4 py-1 rounded-full bg-surface-container-low text-on-surface-variant text-xs font-medium tracking-wider uppercase">Today</span>
+</div>
+<!-- Sent Message 1 -->
+<div class="flex flex-col items-end w-full max-w-[85%] self-end">
+<div class="bg-primary-container text-on-primary-container p-4 rounded-DEFAULT rounded-tr-sm shadow-sm">
+<p class="text-[0.9375rem] leading-relaxed">Had shawarma 120 via cash</p>
+</div>
+<span class="text-[10px] text-on-surface-variant mt-1 mr-1 uppercase tracking-tighter">12:42 PM</span>
+</div>
+<!-- Received Message 1 (System) -->
+<div class="flex flex-col items-start w-full max-w-[85%] self-start">
+<div class="bg-surface-container-high text-on-surface p-4 rounded-DEFAULT rounded-tl-sm shadow-sm">
+<p class="text-[0.9375rem] leading-relaxed">
+                    Added <span class="text-tertiary font-bold">₹120</span> for Food via Cash
+                </p>
+</div>
+<span class="text-[10px] text-on-surface-variant mt-1 ml-1 uppercase tracking-tighter">12:42 PM • NeoLedger</span>
+</div>
+<!-- Sent Message 2 -->
+<div class="flex flex-col items-end w-full max-w-[85%] self-end">
+<div class="bg-primary-container text-on-primary-container p-4 rounded-DEFAULT rounded-tr-sm shadow-sm">
+<p class="text-[0.9375rem] leading-relaxed">Spent 500</p>
+</div>
+<span class="text-[10px] text-on-surface-variant mt-1 mr-1 uppercase tracking-tighter">12:45 PM</span>
+</div>
+<!-- Received Message 2 (System) -->
+<div class="flex flex-col items-start w-full max-w-[85%] self-start">
+<div class="bg-surface-container-high text-on-surface p-4 rounded-DEFAULT rounded-tl-sm shadow-sm">
+<p class="text-[0.9375rem] leading-relaxed">Which payment method did you use?</p>
+</div>
+<!-- Choice Chips -->
+<div class="flex flex-wrap gap-2 mt-3">
+<button class="px-5 py-2.5 rounded-full bg-surface-container-highest text-primary border border-outline-variant/20 hover:bg-surface-bright transition-colors active:scale-95 duration-200 text-sm font-medium">
+                    Bank
+                </button>
+<button class="px-5 py-2.5 rounded-full bg-surface-container-highest text-primary border border-outline-variant/20 hover:bg-surface-bright transition-colors active:scale-95 duration-200 text-sm font-medium">
+                    Card
+                </button>
+<button class="px-5 py-2.5 rounded-full bg-surface-container-highest text-primary border border-outline-variant/20 hover:bg-surface-bright transition-colors active:scale-95 duration-200 text-sm font-medium">
+                    Cash
+                </button>
+</div>
+<span class="text-[10px] text-on-surface-variant mt-2 ml-1 uppercase tracking-tighter">12:45 PM</span>
+</div>
+</main>
+<!-- Chat Input Area -->
+<div class="fixed bottom-[88px] left-0 w-full px-6 md:px-10 z-40">
+<div class="max-w-4xl mx-auto flex items-center gap-3 bg-surface-container-lowest/80 backdrop-blur-xl p-2 rounded-full shadow-2xl border border-outline-variant/10">
+<button class="w-10 h-10 flex items-center justify-center text-on-surface-variant hover:text-primary transition-colors">
+<span class="material-symbols-outlined">add</span>
+</button>
+<input class="flex-1 bg-transparent border-none focus:ring-0 text-on-surface placeholder:text-on-surface-variant/50 font-body text-sm py-2" placeholder="Type your expense..." type="text"/>
+<button class="w-12 h-12 flex items-center justify-center rounded-full bg-gradient-to-br from-[#BAC3FF] to-[#3F51B5] text-white shadow-lg active:scale-90 transition-transform">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">send</span>
+</button>
+</div>
+</div>
+<!-- BottomNavBar -->
+<nav class="fixed bottom-0 w-full z-50 rounded-t-[3rem] bg-[#111417]/80 backdrop-blur-3xl flex justify-around items-center px-6 pb-6 pt-3 w-full shadow-[0_-8px_40px_rgba(63,81,181,0.08)]">
+<!-- Chat (Active) -->
+<a class="flex flex-col items-center justify-center bg-gradient-to-br from-[#BAC3FF] to-[#3F51B5] text-white rounded-full p-3 mb-1 transform active:scale-90 transition-transform" href="#">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">chat_bubble</span>
+<span class="font-inter font-medium text-[10px] uppercase tracking-widest hidden">Chat</span>
+</a>
+<!-- Expenses -->
+<a class="flex flex-col items-center justify-center text-[#C5C5D4] p-3 hover:text-white transition-all active:scale-90 transform" href="#">
+<span class="material-symbols-outlined">receipt_long</span>
+<span class="font-inter font-medium text-[10px] uppercase tracking-widest mt-1">Expenses</span>
+</a>
+<!-- Payments -->
+<a class="flex flex-col items-center justify-center text-[#C5C5D4] p-3 hover:text-white transition-all active:scale-90 transform" href="#">
+<span class="material-symbols-outlined">account_balance_wallet</span>
+<span class="font-inter font-medium text-[10px] uppercase tracking-widest mt-1">Payments</span>
+</a>
+<!-- Profile -->
+<a class="flex flex-col items-center justify-center text-[#C5C5D4] p-3 hover:text-white transition-all active:scale-90 transform" href="#">
+<span class="material-symbols-outlined">person</span>
+<span class="font-inter font-medium text-[10px] uppercase tracking-widest mt-1">Profile</span>
+</a>
+</nav>
+</body></html>

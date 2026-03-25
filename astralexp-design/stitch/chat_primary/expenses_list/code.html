@@ -1,0 +1,289 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>NeoLedger - Expenses</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;700;800&amp;family=Inter:wght@400;500;600&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "surface-tint": "#bac3ff",
+                        "error-container": "#93000a",
+                        "on-tertiary": "#00390a",
+                        "on-tertiary-container": "#83e881",
+                        "on-surface": "#e1e2e7",
+                        "primary-container": "#3f51b5",
+                        "on-secondary-container": "#adb2df",
+                        "on-error": "#690005",
+                        "on-primary-fixed-variant": "#293ca0",
+                        "surface-variant": "#323538",
+                        "on-primary-fixed": "#00105c",
+                        "on-tertiary-fixed": "#002204",
+                        "secondary-fixed-dim": "#bec4f2",
+                        "outline-variant": "#454652",
+                        "secondary-container": "#3e446b",
+                        "surface-container": "#1d2023",
+                        "on-primary": "#08218a",
+                        "primary": "#bac3ff",
+                        "on-primary-container": "#cacfff",
+                        "error": "#ffb4ab",
+                        "surface-container-highest": "#323538",
+                        "background": "#111417",
+                        "tertiary-container": "#00691b",
+                        "surface-container-low": "#191c1f",
+                        "on-surface-variant": "#c5c5d4",
+                        "surface-container-high": "#272a2e",
+                        "surface-container-lowest": "#0b0e11",
+                        "surface": "#111417",
+                        "tertiary-fixed-dim": "#78dc77",
+                        "on-tertiary-fixed-variant": "#005313",
+                        "secondary-fixed": "#dee0ff",
+                        "secondary": "#bec4f2",
+                        "surface-bright": "#37393d",
+                        "tertiary": "#78dc77",
+                        "on-background": "#e1e2e7",
+                        "surface-dim": "#111417",
+                        "on-error-container": "#ffdad6",
+                        "primary-fixed": "#dee0ff",
+                        "on-secondary": "#272e53",
+                        "inverse-primary": "#4355b9",
+                        "inverse-on-surface": "#2e3134",
+                        "tertiary-fixed": "#94f990",
+                        "outline": "#8f909e",
+                        "inverse-surface": "#e1e2e7",
+                        "primary-fixed-dim": "#bac3ff",
+                        "on-secondary-fixed-variant": "#3e446b",
+                        "on-secondary-fixed": "#12183d"
+                    },
+                    fontFamily: {
+                        "headline": ["Manrope"],
+                        "body": ["Inter"],
+                        "label": ["Inter"]
+                    },
+                    borderRadius: { "DEFAULT": "1rem", "lg": "2rem", "xl": "3rem", "full": "9999px" },
+                },
+            },
+        }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+        .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-background text-on-surface font-body selection:bg-primary/30 min-h-screen">
+<!-- TopAppBar -->
+<header class="fixed top-0 w-full z-50 bg-surface/60 backdrop-blur-2xl flex items-center justify-between px-10 py-4 w-full">
+<div class="flex items-center gap-4">
+<div class="w-10 h-10 rounded-full bg-surface-container-high flex items-center justify-center overflow-hidden">
+<img alt="User profile photo" class="w-full h-full object-cover" data-alt="Close-up professional headshot of a person with friendly expression, soft studio lighting, neutral background" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBs79FPIOJcy-hYGLj1inq7NMgvT8EWN74LhB1ewojewRJBonxdq_fUtT7e4CexEnJXbfkn2_qCJ6aujGtgQEyJSt_CMzeW-8We9wpVyLRN07jrm73smmtpIhJAS0DDSJrEpJdF2AZzFHGv2920p6YxwoFMQixplExvAAK4wVU9av31uPjSGOO8EMf1fqyZBVZkMseJMViqm9ghG7x7-5V1QfZJB4A6icR5_uWKmRawlvnSb-eq02IHBfXmVc-310Y0wVk5yatcWjJX"/>
+</div>
+<h1 class="font-manrope font-black text-[#BAC3FF] font-bold text-2xl tracking-tight">Financial Fluidity</h1>
+</div>
+<div class="flex items-center gap-2">
+<button class="p-2 rounded-full hover:bg-[#37393D]/50 transition-colors active:scale-95 duration-200 text-[#C5C5D4]">
+<span class="material-symbols-outlined" data-icon="search">search</span>
+</button>
+<button class="p-2 rounded-full hover:bg-[#37393D]/50 transition-colors active:scale-95 duration-200 text-[#C5C5D4]">
+<span class="material-symbols-outlined" data-icon="more_vert">more_vert</span>
+</button>
+</div>
+</header>
+<main class="pt-24 pb-32 px-10 max-w-5xl mx-auto">
+<!-- Dashboard Header Section -->
+<section class="mb-10">
+<p class="text-on-surface-variant font-medium tracking-wide mb-2">MONTHLY OVERVIEW</p>
+<div class="flex flex-col md:flex-row md:items-end justify-between gap-6">
+<div>
+<h2 class="font-headline font-extrabold text-5xl md:text-7xl text-on-surface tracking-tighter leading-none">
+                        ₹42,850.00
+                    </h2>
+<p class="text-tertiary font-semibold flex items-center gap-2 mt-4">
+<span class="material-symbols-outlined text-sm" style="font-variation-settings: 'FILL' 1;">arrow_downward</span>
+                        8.4% less than last month
+                    </p>
+</div>
+<div class="flex gap-4 overflow-x-auto no-scrollbar pb-2">
+<div class="bg-surface-container-high p-6 rounded-lg min-w-[160px] flex flex-col justify-between aspect-square">
+<span class="material-symbols-outlined text-primary" data-icon="receipt_long">receipt_long</span>
+<div>
+<p class="text-on-surface-variant text-xs font-bold uppercase tracking-widest">TRANSACTIONS</p>
+<p class="text-2xl font-headline font-bold">124</p>
+</div>
+</div>
+<div class="bg-surface-container-high p-6 rounded-lg min-w-[160px] flex flex-col justify-between aspect-square">
+<span class="material-symbols-outlined text-tertiary" data-icon="account_balance_wallet">account_balance_wallet</span>
+<div>
+<p class="text-on-surface-variant text-xs font-bold uppercase tracking-widest">BUDGET LEFT</p>
+<p class="text-2xl font-headline font-bold">₹15k</p>
+</div>
+</div>
+</div>
+</div>
+</section>
+<!-- Expenses List -->
+<section class="space-y-10">
+<!-- Group: Today -->
+<div>
+<div class="flex items-center justify-between mb-6">
+<h3 class="text-on-surface-variant font-bold text-sm tracking-[0.2em] uppercase">Today</h3>
+<span class="text-on-surface-variant text-xs">Total: ₹3,420</span>
+</div>
+<div class="space-y-2">
+<!-- Expense Item 1 -->
+<div class="group relative overflow-hidden rounded-lg">
+<!-- Action Hint Layer (Revealed on swipe/hover simulation) -->
+<div class="absolute inset-y-0 right-0 w-32 flex items-center justify-end px-6 gap-4 bg-error-container/20 translate-x-full group-hover:translate-x-0 transition-transform duration-300">
+<span class="material-symbols-outlined text-error" data-icon="delete">delete</span>
+<span class="material-symbols-outlined text-on-surface-variant" data-icon="edit">edit</span>
+</div>
+<!-- Main Content Card -->
+<div class="bg-surface-container-low p-6 flex items-center justify-between hover:bg-surface-container transition-colors group-hover:-translate-x-20 duration-300">
+<div class="flex items-center gap-6">
+<div class="w-14 h-14 rounded-full bg-surface-container-high flex items-center justify-center text-primary">
+<span class="material-symbols-outlined" data-icon="restaurant">restaurant</span>
+</div>
+<div>
+<p class="text-on-surface font-semibold text-lg">Artisan Coffee &amp; Brunch</p>
+<div class="flex items-center gap-3 mt-1">
+<span class="text-on-surface-variant text-sm">Food &amp; Dining</span>
+<span class="w-1 h-1 rounded-full bg-outline-variant"></span>
+<span class="text-on-surface-variant text-sm">11:45 AM</span>
+</div>
+</div>
+</div>
+<div class="text-right">
+<p class="text-tertiary-fixed-dim font-headline font-extrabold text-xl tracking-tight">₹1,250</p>
+<div class="flex items-center justify-end gap-1 mt-1">
+<span class="material-symbols-outlined text-[14px] text-on-surface-variant" data-icon="credit_card">credit_card</span>
+<p class="text-on-surface-variant text-xs font-medium">HDFC Card</p>
+</div>
+</div>
+</div>
+</div>
+<!-- Expense Item 2 -->
+<div class="group relative overflow-hidden rounded-lg">
+<div class="bg-surface-container-low p-6 flex items-center justify-between hover:bg-surface-container transition-colors duration-300">
+<div class="flex items-center gap-6">
+<div class="w-14 h-14 rounded-full bg-surface-container-high flex items-center justify-center text-primary">
+<span class="material-symbols-outlined" data-icon="local_taxi">local_taxi</span>
+</div>
+<div>
+<p class="text-on-surface font-semibold text-lg">Uber Premium</p>
+<div class="flex items-center gap-3 mt-1">
+<span class="text-on-surface-variant text-sm">Transport</span>
+<span class="w-1 h-1 rounded-full bg-outline-variant"></span>
+<span class="text-on-surface-variant text-sm">09:15 AM</span>
+</div>
+</div>
+</div>
+<div class="text-right">
+<p class="text-tertiary-fixed-dim font-headline font-extrabold text-xl tracking-tight">₹450</p>
+<div class="flex items-center justify-end gap-1 mt-1">
+<span class="material-symbols-outlined text-[14px] text-on-surface-variant" data-icon="payments">payments</span>
+<p class="text-on-surface-variant text-xs font-medium">Cash</p>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+<!-- Group: Yesterday -->
+<div>
+<div class="flex items-center justify-between mb-6">
+<h3 class="text-on-surface-variant font-bold text-sm tracking-[0.2em] uppercase">Yesterday</h3>
+<span class="text-on-surface-variant text-xs">Total: ₹15,200</span>
+</div>
+<div class="space-y-2">
+<!-- Expense Item 3 -->
+<div class="group relative overflow-hidden rounded-lg">
+<div class="bg-surface-container-low p-6 flex items-center justify-between hover:bg-surface-container transition-colors duration-300">
+<div class="flex items-center gap-6">
+<div class="w-14 h-14 rounded-full bg-surface-container-high flex items-center justify-center text-primary">
+<span class="material-symbols-outlined" data-icon="shopping_bag">shopping_bag</span>
+</div>
+<div>
+<p class="text-on-surface font-semibold text-lg">Uniqlo India</p>
+<div class="flex items-center gap-3 mt-1">
+<span class="text-on-surface-variant text-sm">Shopping</span>
+<span class="w-1 h-1 rounded-full bg-outline-variant"></span>
+<span class="text-on-surface-variant text-sm">07:20 PM</span>
+</div>
+</div>
+</div>
+<div class="text-right">
+<p class="text-tertiary-fixed-dim font-headline font-extrabold text-xl tracking-tight">₹8,900</p>
+<div class="flex items-center justify-end gap-1 mt-1">
+<span class="material-symbols-outlined text-[14px] text-on-surface-variant" data-icon="account_balance">account_balance</span>
+<p class="text-on-surface-variant text-xs font-medium">Bank Transfer</p>
+</div>
+</div>
+</div>
+</div>
+<!-- Expense Item 4 -->
+<div class="group relative overflow-hidden rounded-lg">
+<div class="bg-surface-container-low p-6 flex items-center justify-between hover:bg-surface-container transition-colors duration-300">
+<div class="flex items-center gap-6">
+<div class="w-14 h-14 rounded-full bg-surface-container-high flex items-center justify-center text-primary">
+<span class="material-symbols-outlined" data-icon="bolt">bolt</span>
+</div>
+<div>
+<p class="text-on-surface font-semibold text-lg">Adani Electricity</p>
+<div class="flex items-center gap-3 mt-1">
+<span class="text-on-surface-variant text-sm">Utilities</span>
+<span class="w-1 h-1 rounded-full bg-outline-variant"></span>
+<span class="text-on-surface-variant text-sm">02:10 PM</span>
+</div>
+</div>
+</div>
+<div class="text-right">
+<p class="text-tertiary-fixed-dim font-headline font-extrabold text-xl tracking-tight">₹6,300</p>
+<div class="flex items-center justify-end gap-1 mt-1">
+<span class="material-symbols-outlined text-[14px] text-on-surface-variant" data-icon="account_balance_wallet">account_balance_wallet</span>
+<p class="text-on-surface-variant text-xs font-medium">NeoWallet</p>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</section>
+</main>
+<!-- FAB: Add Expense -->
+<button class="fixed bottom-28 right-8 w-16 h-16 rounded-full bg-gradient-to-br from-[#BAC3FF] to-[#3F51B5] text-white flex items-center justify-center shadow-[0_8px_40px_rgba(63,81,181,0.3)] hover:scale-110 active:scale-95 transition-all z-50">
+<span class="material-symbols-outlined text-3xl">add</span>
+</button>
+<!-- BottomNavBar -->
+<nav class="fixed bottom-0 w-full z-50 rounded-t-[3rem] bg-[#111417]/80 backdrop-blur-3xl flex justify-around items-center px-6 pb-6 pt-3 shadow-[0_-8px_40px_rgba(63,81,181,0.08)]">
+<div class="flex flex-col items-center justify-center text-[#C5C5D4] p-3 hover:text-white transition-all active:scale-90 transform">
+<span class="material-symbols-outlined mb-1" data-icon="chat_bubble">chat_bubble</span>
+<span class="font-inter font-medium text-[10px] uppercase tracking-widest">Chat</span>
+</div>
+<div class="flex flex-col items-center justify-center bg-gradient-to-br from-[#BAC3FF] to-[#3F51B5] text-white rounded-full p-3 mb-1 active:scale-90 transform transition-transform">
+<span class="material-symbols-outlined mb-1" data-icon="receipt_long">receipt_long</span>
+<span class="font-inter font-medium text-[10px] uppercase tracking-widest">Expenses</span>
+</div>
+<div class="flex flex-col items-center justify-center text-[#C5C5D4] p-3 hover:text-white transition-all active:scale-90 transform">
+<span class="material-symbols-outlined mb-1" data-icon="account_balance_wallet">account_balance_wallet</span>
+<span class="font-inter font-medium text-[10px] uppercase tracking-widest">Payments</span>
+</div>
+<div class="flex flex-col items-center justify-center text-[#C5C5D4] p-3 hover:text-white transition-all active:scale-90 transform">
+<span class="material-symbols-outlined mb-1" data-icon="person">person</span>
+<span class="font-inter font-medium text-[10px] uppercase tracking-widest">Profile</span>
+</div>
+</nav>
+</body></html>
