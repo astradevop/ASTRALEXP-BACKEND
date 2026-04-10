@@ -1,0 +1,38 @@
+name: Deploy Backend to EC2
+
+on:
+  push:
+    branches: [ main ]
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v3
+
+      - name: SSH and Deploy to EC2
+        uses: appleboy/ssh-action@master
+        with:
+          host: ${{ secrets.EC2_HOST }}
+          username: ${{ secrets.EC2_USERNAME }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          script: |
+            cd ${{ secrets.PROJECT_PATH }}
+            
+            # Pull latest changes
+            git fetch origin main
+            git reset --hard origin/main
+            
+            # Setup/Update Environment
+            source venv/bin/activate
+            pip install -r requirements.txt
+            
+            # Apply migrations & static files
+            python manage.py migrate
+            python manage.py collectstatic --noinput
+            
+            # Restart Services (Gunicorn)
+            sudo systemctl restart gunicorn
+            
+            echo "✅ Deployment Successful!"
