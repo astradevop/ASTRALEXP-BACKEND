@@ -1,9 +1,10 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import {
   View, Text, TextInput, TouchableOpacity, StyleSheet,
-  FlatList, ActivityIndicator, Alert, KeyboardAvoidingView,
+  ActivityIndicator, Alert,
   Platform, SafeAreaView, Keyboard, StatusBar, Image
 } from 'react-native';
+import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import { Ionicons } from '@expo/vector-icons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import * as ImagePicker from 'expo-image-picker';
@@ -301,23 +302,22 @@ export default function ChatScreen({ navigation }) {
         </TouchableOpacity>
       </View>
 
-      {/* Messages */}
-      <FlatList
+      <KeyboardAwareScrollView
         ref={listRef}
-        data={messages}
-        keyExtractor={(i) => i.id}
-        renderItem={renderItem}
-        contentContainerStyle={styles.list}
-        onContentSizeChange={() => listRef.current?.scrollToEnd({ animated: false })}
+        style={{ flex: 1 }}
+        contentContainerStyle={{ flexGrow: 1 }}
         keyboardShouldPersistTaps="handled"
-      />
-
-      {/* Input bar */}
-      <KeyboardAvoidingView 
-        behavior={Platform.OS === 'ios' ? 'padding' : 'height'} 
-        style={{ flex: 0 }}
-        keyboardVerticalOffset={Platform.OS === 'ios' ? 80 : 0}
+        extraScrollHeight={20}
+        enableOnAndroid={true}
       >
+        <View style={{ flex: 1 }}>
+          {messages.map((item) => (
+            <View key={item.id}>
+              {renderItem({ item })}
+            </View>
+          ))}
+        </View>
+
         <View style={styles.inputBar}>
           <TouchableOpacity onPress={pickImage} style={[styles.addBtn, { marginRight: -4 }]} activeOpacity={0.7}>
             <Ionicons name="camera-outline" size={26} color={Colors.onSurfaceVariant} />
@@ -339,7 +339,7 @@ export default function ChatScreen({ navigation }) {
             }
           </TouchableOpacity>
         </View>
-      </KeyboardAvoidingView>
+      </KeyboardAwareScrollView>
     </SafeAreaView>
   );
 }
