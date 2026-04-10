@@ -1,0 +1,45 @@
+name: AWS EC2 Continuous Deployment
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'ASTRALEXP-BACKEND/**' # Triggers only when backend changes happen
+
+jobs:
+  deploy:
+    name: Deploy Backend to EC2
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Deploy to Ubuntu AWS Server
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.EC2_HOST }}
+          username: ${{ secrets.EC2_USERNAME }}
+          key: ${{ secrets.EC2_SSH_KEY }}
+          script: |
+            echo "Starting Continuous Deployment to AWS EC2..."
+            
+            # 1. Pull Latest Code
+            cd /home/ubuntu/ASTRALEXP
+            git pull origin main
+            
+            # 2. Enter Backend Directory
+            cd ASTRALEXP-BACKEND
+            
+            # 3. Activate Virtual Environment and Install Updates
+            source venv/bin/activate
+            pip install -r requirements.txt
+            
+            # 4. Migrate Database
+            python manage.py migrate
+            python manage.py collectstatic --noinput
+            
+            # 5. Restart Gunicorn Daemon
+            sudo systemctl daemon-reload
+            sudo systemctl restart gunicorn
+            sudo systemctl restart nginx
+            
+            echo "Deployment to Remote AWS Server executed successfully!"
