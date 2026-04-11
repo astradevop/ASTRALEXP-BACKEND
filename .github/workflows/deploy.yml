@@ -4,16 +4,37 @@ on:
   push:
     branches:
       - main
-    paths:
-      - 'ASTRALEXP-BACKEND/**' # Triggers only when backend changes happen
 
 jobs:
   deploy:
-    name: Deploy Backend to EC2
+    name: Deploy Backend & Web Frontend to EC2
     runs-on: ubuntu-latest
 
     steps:
-      - name: Deploy to Ubuntu AWS Server
+      - name: Checkout Code
+        uses: actions/checkout@v3
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: 20
+
+      - name: Build Web Frontend
+        run: |
+          cd ASTRALEXP-FRONTEND
+          npm install
+          npm run build:web
+
+      - name: Upload Web Build to EC2
+        uses: appleboy/scp-action@v0.1.4
+        with:
+          host: ${{ secrets.EC2_HOST }}
+          username: ${{ secrets.EC2_USERNAME }}
+          key: ${{ secrets.EC2_SSH_KEY }}
+          source: "ASTRALEXP-FRONTEND/dist/*"
+          target: "/tmp"
+
+      - name: Deploy to Ubuntu AWS Server & Configure Nginx
         uses: appleboy/ssh-action@v1.0.3
         with:
           host: ${{ secrets.EC2_HOST }}
@@ -22,7 +43,7 @@ jobs:
           script: |
             echo "Starting Continuous Deployment to AWS EC2..."
             
-            # 1. Pull Latest Code
+            # 1. Pull Latest Backend Code
             cd /home/ubuntu/ASTRALEXP
             git pull origin main
             
@@ -37,13 +58,52 @@ jobs:
             python manage.py migrate
             python manage.py collectstatic --noinput
             
-            # 5. Restart Gunicorn & Nginx properly
+            # 5. Move Frontend Files to Web Root
+            sudo mkdir -p /var/www/astralexp-frontend
+            sudo rsync -av --delete /tmp/ASTRALEXP-FRONTEND/dist/ /var/www/astralexp-frontend/
+            sudo chown -R www-data:www-data /var/www/astralexp-frontend
+            sudo chmod -R 755 /var/www/astralexp-frontend
+            
+            # 6. Apply Split Routing inside Nginx (Non-Destructive)
+            NGINX_CONF="/etc/nginx/sites-available/astralexp"
+            if sudo test -f "$NGINX_CONF"; then
+               if ! sudo grep -q "astralexp-frontend" "$NGINX_CONF"; then
+                 echo "Adding explicit Web Routing to Nginx securely..."
+                 # Rename old root location to a fallback name
+                 sudo sed -i 's|location / {|location /old-fallback {|g' "$NGINX_CONF"
+                 
+                 # Insert the new Web and explicitly re-route API traffic to Django
+                 sudo bash -c "cat << 'EOF' > /tmp/nginx_insert
+                # Web React App Frontend
+                location / {
+                    root /var/www/astralexp-frontend;
+                    index index.html;
+                    try_files \$uri \$uri/ /index.html;
+                }
+
+                # Explicit Django Backend Routing
+                location ~ ^/(api|admin|static|media)/ {
+                    proxy_pass http://unix:/run/gunicorn.sock;
+                    proxy_set_header Host \$host;
+                    proxy_set_header X-Real-IP \$remote_addr;
+                    proxy_set_header X-Forwarded-For \$proxy_add_x_forwarded_for;
+                }
+            EOF"
+                 sudo sed -i '/server_name/r /tmp/nginx_insert' "$NGINX_CONF"
+                 sudo ln -sf "$NGINX_CONF" /etc/nginx/sites-enabled/
+               fi
+            else
+               echo "WARNING: Nginx conf $NGINX_CONF not found. You will need to manually configure it."
+            fi
+            
+            # 7. Restart Gunicorn & Nginx properly
             sudo systemctl daemon-reload
             sudo systemctl restart gunicorn.socket
             sudo systemctl restart gunicorn
             sudo systemctl restart nginx
             
-            # 6. Verify health
+            # 8. Clean up & Verify health
+            rm -rf /tmp/ASTRALEXP-FRONTEND
             sleep 2
             sudo systemctl is-active --quiet gunicorn || (echo "Gunicorn failed to start" && exit 1)
             sudo systemctl is-active --quiet nginx || (echo "Nginx failed to start" && exit 1)
