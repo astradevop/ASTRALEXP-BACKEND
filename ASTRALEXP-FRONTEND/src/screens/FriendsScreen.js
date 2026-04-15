@@ -6,8 +6,10 @@ import {
 import { Ionicons } from '@expo/vector-icons';
 import { Colors, Spacing, Radius } from '../theme';
 import { friendsAPI } from '../services/api';
+import { useLayout } from '../hooks/useLayout';
 
 export default function FriendsScreen({ navigation }) {
+  const layout = useLayout();
   const [friends, setFriends] = useState([]);
   const [pending, setPending] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -77,9 +79,13 @@ export default function FriendsScreen({ navigation }) {
     </View>
   );
 
+  const maxW = layout.isLargeScreen ? 800 : null;
+  const padH  = layout.isDesktop ? 40 : Spacing.lg;
+
   return (
     <SafeAreaView style={styles.root}>
-      <View style={styles.header}>
+      <View style={[styles.centeredWrap, maxW && { maxWidth: maxW, alignSelf: 'center', width: '100%' }]}>
+      <View style={[styles.header, { paddingHorizontal: padH }]}>
         <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backBtn}>
           <Ionicons name="arrow-back" size={24} color={Colors.onSurface} />
         </TouchableOpacity>
@@ -114,12 +120,14 @@ export default function FriendsScreen({ navigation }) {
           }
         />
       )}
+      </View>
     </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
   root:        { flex:1, backgroundColor:Colors.background, paddingTop: Platform.OS === 'android' ? StatusBar.currentHeight : 0 },
+  centeredWrap:{ flex:1 },
   header:      { flexDirection:'row', alignItems:'center', justifyContent:'space-between', paddingHorizontal:Spacing.lg, paddingVertical:12 },
   backBtn:     { width:40, height:40, borderRadius:20, backgroundColor:Colors.surfaceContainerHigh, alignItems:'center', justifyContent:'center' },
   title:       { fontSize:16, fontWeight:'700', color:Colors.onSurface, letterSpacing:1, textTransform:'uppercase' },

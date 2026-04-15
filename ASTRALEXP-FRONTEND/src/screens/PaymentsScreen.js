@@ -1,29 +1,33 @@
 import React, { useState, useEffect } from 'react';
 import {
   View, Text, TouchableOpacity, StyleSheet,
-  FlatList, ActivityIndicator, Alert, SafeAreaView, RefreshControl, Modal, TextInput, KeyboardAvoidingView, Platform, StatusBar,
+  FlatList, ActivityIndicator, Alert, SafeAreaView, RefreshControl,
+  Modal, TextInput, KeyboardAvoidingView, Platform, StatusBar, ScrollView,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { Colors, Spacing, Radius, PM_TYPES, CURRENCY_SYMBOLS } from '../theme';
 import { paymentsAPI } from '../services/api';
 import { useAuth } from '../context/AuthContext';
+import { useLayout } from '../hooks/useLayout';
 
 export default function PaymentsScreen() {
-  const { user } = useAuth();
-  const [pms, setPms] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const { user }   = useAuth();
+  const layout     = useLayout();
+  const [pms, setPms]               = useState([]);
+  const [loading, setLoading]       = useState(true);
   const [refreshing, setRefreshing] = useState(false);
-  
-  // Modal State
+
+  // Modal state
   const [modalVisible, setModalVisible] = useState(false);
-  const [editingId, setEditingId] = useState(null);
-  const [name, setName] = useState('');
-  const [type, setType] = useState('upi');
-  const [balance, setBalance] = useState('');
-  const [isDef, setIsDef] = useState(false);
-  const [saving, setSaving] = useState(false);
+  const [editingId, setEditingId]       = useState(null);
+  const [name, setName]                 = useState('');
+  const [type, setType]                 = useState('upi');
+  const [balance, setBalance]           = useState('');
+  const [isDef, setIsDef]               = useState(false);
+  const [saving, setSaving]             = useState(false);
 
   const currSym = CURRENCY_SYMBOLS[user?.preferred_currency || 'INR'] || '₹';
+  const maxWidth = layout.isDesktop ? 860 : layout.isTablet ? 700 : null;
 
   useEffect(() => { loadPms(); }, []);
 
@@ -79,7 +83,7 @@ export default function PaymentsScreen() {
   const renderItem = ({ item }) => {
     const isGradient = item.type === 'card' || item.is_default;
     const cardStyle = [styles.card, isGradient && styles.cardGradient];
-    
+
     return (
       <TouchableOpacity style={cardStyle} onPress={() => openEdit(item)} activeOpacity={0.85}>
         <View style={styles.cardHeader}>
@@ -89,14 +93,14 @@ export default function PaymentsScreen() {
           </View>
           <Ionicons name={getIcon(item.type)} size={28} color={isGradient ? Colors.onPrimaryContainer : Colors.onSurfaceVariant} />
         </View>
-        
+
         <View style={styles.cardFooter}>
           {item.balance != null ? (
             <Text style={[styles.cardBal, isGradient && { color: Colors.onPrimaryContainer }]}>{currSym}{parseFloat(item.balance).toLocaleString('en-IN', {minimumFractionDigits:2})}</Text>
           ) : (
             <Text style={[styles.cardBalEmpty, isGradient && { color: 'rgba(202,207,255,0.6)' }]}>No balance tracked</Text>
           )}
-          
+
           <View style={styles.pillRow}>
             {item.is_default && <View style={[styles.pill, { backgroundColor: 'rgba(120,220,119,0.15)' }]}><Text style={[styles.pillText, { color: Colors.tertiary }]}>DEFAULT</Text></View>}
             <View style={[styles.pill, isGradient && { backgroundColor: 'rgba(255,255,255,0.08)' }]}><Text style={[styles.pillText, isGradient && { color: 'rgba(202,207,255,0.6)' }]}>{item.type}</Text></View>
@@ -106,81 +110,99 @@ export default function PaymentsScreen() {
     );
   };
 
-  return (
-    <SafeAreaView style={styles.root}>
-      <View style={styles.header}>
-        <Text style={styles.headerTitle}>Financial Fluidity</Text>
-        <TouchableOpacity onPress={openAdd} hitSlop={{top:8,bottom:8,left:8,right:8}}>
-          <Ionicons name="add" size={26} color={Colors.primary} />
-        </TouchableOpacity>
-      </View>
-
-      <Text style={styles.sectionTitle}>YOUR VAULTS</Text>
-
-      {loading ? <View style={styles.center}><ActivityIndicator color={Colors.primary} /></View>
-        : pms.length === 0 ? (
-          <View style={styles.center}>
-            <Ionicons name="wallet-outline" size={56} color={Colors.outlineVariant} />
-            <Text style={styles.emptyText}>No payment methods yet</Text>
-            <TouchableOpacity style={styles.emptyBtn} onPress={openAdd}>
-              <Text style={styles.emptyBtnText}>+ Add Method</Text>
-            </TouchableOpacity>
-          </View>
-        ) : (
-          <FlatList
-            data={pms}
-            keyExtractor={p => String(p.id)}
-            renderItem={renderItem}
-            contentContainerStyle={styles.list}
-            refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={Colors.primary} />}
-          />
-        )}
-
-      {/* Add/Edit Modal */}
-      <Modal visible={modalVisible} transparent animationType="slide">
-        <View style={styles.modalBg}>
-          <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined} style={styles.modalContentWrap}>
-            <View style={styles.modalCard}>
-              <View style={styles.modalHeader}>
-                <Text style={styles.modalTitle}>{editingId ? 'Edit Method' : 'Add Payment Method'}</Text>
+  const AddEditModal = () => (
+    <Modal visible={modalVisible} transparent animationType="fade">
+      <View style={styles.modalBg}>
+        <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined} style={styles.modalContentWrap}>
+          <View style={[styles.modalCard, layout.isLargeScreen && styles.modalCardDesktop]}>
+            <View style={styles.modalHeader}>
+              <Text style={styles.modalTitle}>{editingId ? 'Edit Method' : 'Add Payment Method'}</Text>
+              <View style={{ flexDirection: 'row', gap: 12, alignItems: 'center' }}>
                 {editingId && (
                   <TouchableOpacity onPress={del}><Ionicons name="trash-outline" size={20} color={Colors.error} /></TouchableOpacity>
                 )}
-              </View>
-
-              <TextInput
-                style={styles.input} value={name} onChangeText={setName} placeholder="Account Name (e.g. HDFC Bank)" placeholderTextColor={Colors.outline}
-              />
-              
-              <View style={styles.typeGrid}>
-                {PM_TYPES.map(t => (
-                  <TouchableOpacity key={t.id} style={[styles.typeBtn, type === t.id && styles.typeBtnAct]} onPress={() => setType(t.id)}>
-                    <Text style={[styles.typeText, type === t.id && styles.typeTextAct]}>{t.label}</Text>
-                  </TouchableOpacity>
-                ))}
-              </View>
-
-              <TextInput
-                style={styles.input} value={String(balance)} onChangeText={setBalance} placeholder="Current Balance (Optional)" placeholderTextColor={Colors.outline} keyboardType="numeric"
-              />
-
-              <TouchableOpacity style={styles.chkRow} onPress={() => setIsDef(!isDef)} activeOpacity={1}>
-                <Ionicons name={isDef ? 'checkbox' : 'square-outline'} size={24} color={isDef ? Colors.primaryContainer : Colors.outlineVariant} />
-                <Text style={styles.chkText}>Set as default payment method</Text>
-              </TouchableOpacity>
-
-              <View style={styles.modalActions}>
-                <TouchableOpacity style={styles.btnCancel} onPress={() => setModalVisible(false)}>
-                  <Text style={styles.btnCancelText}>Cancel</Text>
-                </TouchableOpacity>
-                <TouchableOpacity style={styles.btnSave} onPress={save} disabled={saving}>
-                  {saving ? <ActivityIndicator color="#fff" /> : <Text style={styles.btnSaveText}>Save Method</Text>}
+                <TouchableOpacity onPress={() => setModalVisible(false)}>
+                  <Ionicons name="close" size={22} color={Colors.onSurfaceVariant} />
                 </TouchableOpacity>
               </View>
             </View>
-          </KeyboardAvoidingView>
+
+            <TextInput
+              style={styles.input} value={name} onChangeText={setName}
+              placeholder="Account Name (e.g. HDFC Bank)" placeholderTextColor={Colors.outline}
+            />
+
+            <View style={styles.typeGrid}>
+              {PM_TYPES.map(t => (
+                <TouchableOpacity key={t.id} style={[styles.typeBtn, type === t.id && styles.typeBtnAct]} onPress={() => setType(t.id)}>
+                  <Text style={[styles.typeText, type === t.id && styles.typeTextAct]}>{t.label}</Text>
+                </TouchableOpacity>
+              ))}
+            </View>
+
+            <TextInput
+              style={styles.input} value={String(balance)} onChangeText={setBalance}
+              placeholder="Current Balance (Optional)" placeholderTextColor={Colors.outline} keyboardType="numeric"
+            />
+
+            <TouchableOpacity style={styles.chkRow} onPress={() => setIsDef(!isDef)} activeOpacity={1}>
+              <Ionicons name={isDef ? 'checkbox' : 'square-outline'} size={24} color={isDef ? Colors.primaryContainer : Colors.outlineVariant} />
+              <Text style={styles.chkText}>Set as default payment method</Text>
+            </TouchableOpacity>
+
+            <View style={styles.modalActions}>
+              <TouchableOpacity style={styles.btnCancel} onPress={() => setModalVisible(false)}>
+                <Text style={styles.btnCancelText}>Cancel</Text>
+              </TouchableOpacity>
+              <TouchableOpacity style={styles.btnSave} onPress={save} disabled={saving}>
+                {saving ? <ActivityIndicator color="#fff" /> : <Text style={styles.btnSaveText}>Save Method</Text>}
+              </TouchableOpacity>
+            </View>
+          </View>
+        </KeyboardAvoidingView>
+      </View>
+    </Modal>
+  );
+
+  return (
+    <SafeAreaView style={[styles.root, { paddingLeft: layout.sidebarWidth }]}>
+      {/* Shared Header Style exactly like Chat */}
+      <View style={[styles.header, layout.isLargeScreen && styles.headerDesktop]}>
+        <View style={[styles.headerInner, maxWidth && { maxWidth, width: '100%', alignSelf: 'center' }]}>
+          <Text style={styles.headerTitle}>Financial Fluidity</Text>
+          <TouchableOpacity onPress={openAdd} hitSlop={{top:8,bottom:8,left:8,right:8}}>
+            <Ionicons name="add" size={26} color={Colors.primary} />
+          </TouchableOpacity>
         </View>
-      </Modal>
+      </View>
+
+      <View style={[styles.contentOuter, layout.isLargeScreen && styles.contentOuterDesktop]}>
+        <View style={[styles.contentInner, maxWidth && { maxWidth, width: '100%', alignSelf: 'center' }]}>
+          <Text style={styles.sectionTitle}>YOUR VAULTS</Text>
+
+          {loading ? <View style={styles.center}><ActivityIndicator color={Colors.primary} /></View>
+            : pms.length === 0 ? (
+              <View style={styles.center}>
+                <Ionicons name="wallet-outline" size={56} color={Colors.outlineVariant} />
+                <Text style={styles.emptyText}>No payment methods yet</Text>
+                <TouchableOpacity style={styles.emptyBtn} onPress={openAdd}>
+                  <Text style={styles.emptyBtnText}>+ Add Method</Text>
+                </TouchableOpacity>
+              </View>
+            ) : (
+              <FlatList
+                data={pms}
+                keyExtractor={p => String(p.id)}
+                renderItem={renderItem}
+                contentContainerStyle={styles.list}
+                refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={Colors.primary} />}
+              />
+            )
+          }
+        </View>
+      </View>
+
+      <AddEditModal />
     </SafeAreaView>
   );
 }
@@ -192,10 +214,21 @@ function getIcon(type) {
 
 const styles = StyleSheet.create({
   root:        { flex:1, backgroundColor:Colors.background, paddingTop: Platform.OS === 'android' ? StatusBar.currentHeight : 0 },
-  header:      { flexDirection:'row', alignItems:'center', justifyContent:'space-between', paddingHorizontal:Spacing.lg, paddingVertical:12 },
+
+  // Shared Header
+  header:      { borderBottomWidth:0 },
+  headerDesktop:{ borderBottomWidth:1, borderBottomColor:Colors.outlineVariant+'20', backgroundColor:Colors.surfaceContainerLowest+'80' },
+  headerInner: { flexDirection:'row', alignItems:'center', justifyContent:'space-between', paddingHorizontal:Spacing.lg, paddingVertical:12 },
   headerTitle: { fontSize:17, fontWeight:'700', color:Colors.primary, letterSpacing:-0.3 },
+
+  contentOuter: { flex: 1 },
+  contentOuterDesktop: { alignItems: 'center' },
+  contentInner: { flex: 1, width: '100%' },
+
   sectionTitle:{ fontSize:10, color:Colors.onSurfaceVariant, letterSpacing:3, fontWeight:'700', marginLeft:Spacing.lg, marginBottom:Spacing.md, marginTop:Spacing.md },
   list:        { paddingHorizontal:Spacing.lg, paddingBottom:Spacing.xxl, gap:Spacing.md },
+
+  // Cards
   center:      { flex:1, alignItems:'center', justifyContent:'center', gap:12 },
   emptyText:   { color:Colors.onSurfaceVariant, fontSize:15 },
   emptyBtn:    { paddingHorizontal:20, paddingVertical:10, borderRadius:Radius.full, backgroundColor:Colors.primaryContainer+'33' },
@@ -211,10 +244,12 @@ const styles = StyleSheet.create({
   pillRow:     { flexDirection:'row', gap:8, marginTop:4 },
   pill:        { paddingHorizontal:10, paddingVertical:4, borderRadius:Radius.full, backgroundColor:Colors.surfaceContainerHighest },
   pillText:    { fontSize:10, fontWeight:'700', color:Colors.onSurfaceVariant, letterSpacing:1, textTransform:'uppercase' },
+
   // Modal
-  modalBg:     { flex:1, backgroundColor:'rgba(0,0,0,0.8)', justifyContent:'flex-end' },
-  modalContentWrap: { width:'100%' },
-  modalCard:   { backgroundColor:Colors.surfaceContainerLow, borderTopLeftRadius:Radius.lg, borderTopRightRadius:Radius.lg, padding:Spacing.xl, gap:Spacing.md },
+  modalBg:     { flex:1, backgroundColor:'rgba(0,0,0,0.8)', justifyContent:'center', alignItems:'center', padding:20 },
+  modalContentWrap: { width:'100%', maxWidth:520 },
+  modalCard:   { backgroundColor:Colors.surfaceContainerLow, borderRadius:Radius.lg, padding:Spacing.xl, gap:Spacing.md },
+  modalCardDesktop:{ borderRadius:Radius.lg },
   modalHeader: { flexDirection:'row', justifyContent:'space-between', alignItems:'center', marginBottom:Spacing.sm },
   modalTitle:  { fontSize:20, fontWeight:'800', color:Colors.onSurface, letterSpacing:-0.5 },
   input:       { backgroundColor:Colors.surfaceContainerLowest, height:52, borderRadius:Radius.md, paddingHorizontal:16, fontSize:15, color:Colors.onSurface },

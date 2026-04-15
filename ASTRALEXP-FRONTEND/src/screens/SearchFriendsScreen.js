@@ -6,8 +6,11 @@ import {
 import { Ionicons } from '@expo/vector-icons';
 import { Colors, Spacing, Radius } from '../theme';
 import { friendsAPI } from '../services/api';
+import { useLayout } from '../hooks/useLayout';
 
 export default function SearchFriendsScreen({ navigation }) {
+  const layout  = useLayout();
+  const maxW    = layout.isLargeScreen ? 800 : null;
   const [query, setQuery] = useState('');
   const [results, setResults] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -56,6 +59,7 @@ export default function SearchFriendsScreen({ navigation }) {
 
   return (
     <SafeAreaView style={styles.root}>
+      <View style={[maxW && { maxWidth: maxW, alignSelf: 'center', width: '100%', flex: 1 }]}>
       <View style={styles.header}>
         <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backBtn}>
           <Ionicons name="arrow-back" size={24} color={Colors.onSurface} />
@@ -90,6 +94,7 @@ export default function SearchFriendsScreen({ navigation }) {
           }
         />
       )}
+      </View>
     </SafeAreaView>
   );
 }

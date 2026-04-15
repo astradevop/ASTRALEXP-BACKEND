@@ -7,9 +7,12 @@ import { Ionicons } from '@expo/vector-icons';
 import { Colors, Spacing, Radius, CURRENCY_SYMBOLS } from '../theme';
 import { expensesAPI, paymentsAPI } from '../services/api';
 import { useAuth } from '../context/AuthContext';
+import { useLayout } from '../hooks/useLayout';
 
 export default function CreditsScreen({ navigation }) {
   const { user } = useAuth();
+  const layout   = useLayout();
+  const maxW     = layout.isLargeScreen ? 900 : null;
   const currSym = CURRENCY_SYMBOLS[user?.preferred_currency || 'INR'] || '₹';
   
   const [given, setGiven] = useState([]); // Credits I gave (Who owes me)
@@ -98,6 +101,7 @@ export default function CreditsScreen({ navigation }) {
 
   return (
     <SafeAreaView style={styles.root}>
+      <View style={[styles.inner, maxW && { maxWidth: maxW, alignSelf: 'center', width: '100%' }]}>
       <View style={styles.header}>
         <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backBtn}>
           <Ionicons name="arrow-back" size={24} color={Colors.onSurface} />
@@ -133,9 +137,9 @@ export default function CreditsScreen({ navigation }) {
       )}
 
       {/* Payment Selection Modal */}
-      <Modal visible={payModal} transparent animationType="slide">
-        <View style={styles.modalRoot}>
-          <View style={styles.modalContent}>
+      <Modal visible={payModal} transparent animationType="fade">
+        <View style={[styles.modalRoot, layout.isLargeScreen && styles.modalRootCenter]}>
+          <View style={[styles.modalContent, layout.isLargeScreen && styles.modalContentDesktop]}>
             <Text style={styles.modalTitle}>Select Payment Method</Text>
             <Text style={styles.modalSub}>How did you pay this?</Text>
             
@@ -155,12 +159,14 @@ export default function CreditsScreen({ navigation }) {
           </View>
         </View>
       </Modal>
+      </View>
     </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
   root:        { flex:1, backgroundColor:Colors.background, paddingTop: Platform.OS === 'android' ? StatusBar.currentHeight : 0 },
+  inner:       { flex:1 },
   header:      { flexDirection:'row', alignItems:'center', justifyContent:'space-between', paddingHorizontal:Spacing.lg, paddingVertical:12 },
   backBtn:     { width:40, height:40, borderRadius:20, backgroundColor:Colors.surfaceContainerHigh, alignItems:'center', justifyContent:'center' },
   title:       { fontSize:16, fontWeight:'700', color:Colors.onSurface, letterSpacing:1, textTransform:'uppercase' },
@@ -185,8 +191,10 @@ const styles = StyleSheet.create({
   payBtnTxt:   { fontSize:11, fontWeight:'800', color:Colors.onTertiaryContainer },
   empty:       { alignItems:'center', marginTop:100, gap:12 },
   emptyTxt:    { color:Colors.outline, fontSize:14 },
-  modalRoot:   { flex:1, backgroundColor:'rgba(0,0,0,0.5)', justifyContent:'flex-end' },
-  modalContent:{ backgroundColor:Colors.background, borderTopLeftRadius:24, borderTopRightRadius:24, padding:Spacing.xl },
+  modalRoot:        { flex:1, backgroundColor:'rgba(0,0,0,0.7)', justifyContent:'flex-end' },
+  modalRootCenter:  { justifyContent:'center', alignItems:'center', padding:20 },
+  modalContent:     { backgroundColor:Colors.background, borderTopLeftRadius:24, borderTopRightRadius:24, padding:Spacing.xl },
+  modalContentDesktop:{ borderRadius:24, width:'100%', maxWidth:480 },
   modalTitle:  { fontSize:20, fontWeight:'800', color:Colors.onSurface },
   modalSub:    { fontSize:14, color:Colors.outline, marginTop:4 },
   pmBtn:       { flexDirection:'row', alignItems:'center', backgroundColor:Colors.surfaceContainerLow, padding:16, borderRadius:Radius.md, gap:12 },

@@ -11,12 +11,14 @@ import * as FileSystem from 'expo-file-system';
 import { Colors, Spacing, Radius, CATEGORIES, CURRENCY_SYMBOLS } from '../theme';
 import { chatAPI, expensesAPI, paymentsAPI, friendsAPI } from '../services/api';
 import { useAuth } from '../context/AuthContext';
+import { useLayout } from '../hooks/useLayout';
 
 const GREET_HOUR = new Date().getHours();
 const GREETING   = GREET_HOUR < 12 ? '☀️ Good morning' : GREET_HOUR < 17 ? '🌤 Good afternoon' : '🌙 Good evening';
 
 export default function ChatScreen({ navigation }) {
   const { user } = useAuth();
+  const layout   = useLayout();
   const [messages,   setMessages]   = useState([]);
   const [input,      setInput]      = useState('');
   const [sending,    setSending]    = useState(false);
@@ -67,12 +69,8 @@ export default function ChatScreen({ navigation }) {
     }
   };
 
-
-
-
   useEffect(() => {
     const saveHistory = async () => {
-      // Only persist user/bot/image messages, omit temporary interactive 'chips'
       const persistable = messages.filter(m => m.role !== 'chips');
       if (persistable.length > 0) {
         try {
@@ -102,7 +100,7 @@ export default function ChatScreen({ navigation }) {
   const pickImage = async () => {
     const result = await ImagePicker.launchImageLibraryAsync({
       mediaTypes: ImagePicker.MediaTypeOptions.Images,
-      allowsEditing: true, 
+      allowsEditing: true,
       quality: 0.7,
       base64: true,
     });
@@ -124,7 +122,6 @@ export default function ChatScreen({ navigation }) {
     setSending(true);
     scrollToBottom();
 
-    // Preserve context if we are answering a follow-up
     let prevContext = null;
     if (explicitContext && !photoBase64 && !explicitContext.is_complete_action) {
       prevContext = explicitContext.parsed;
@@ -163,7 +160,7 @@ export default function ChatScreen({ navigation }) {
         setPending({ parsed: p, is_complete_action: false });
         pushBot(follow_up || 'Could you provide more details?');
         if (p?.missing_fields?.includes('payment_method')) {
-          const sufficient = (payMethods || []).filter(pm => 
+          const sufficient = (payMethods || []).filter(pm =>
             pm.balance == null || parseFloat(pm.balance) >= (p.amount || 0)
           ).slice(0, 4);
 
@@ -171,7 +168,6 @@ export default function ChatScreen({ navigation }) {
             pushChips(sufficient.map(pm => {
               const balStr = pm.balance != null ? `${currSym}${parseFloat(pm.balance).toFixed(0)}` : '';
               const labelStr = balStr ? `${pm.name} (${balStr})` : pm.name;
-
               return {
                 label: labelStr,
                 onPress: () => send(null, null, `via ${pm.name}`, { parsed: p, is_complete_action: false }),
@@ -185,7 +181,6 @@ export default function ChatScreen({ navigation }) {
           pushChips((friends || []).map(f => ({
             label: `👤 ${f.full_name || f.username}`,
             onPress: () => {
-              // Add this friend to splits and re-parse or re-evaluate
               const updatedSplits = [...(p.splits || [])];
               if (!updatedSplits.find(s => s.friend_id === f.id)) {
                 updatedSplits.push({ friend_id: f.id, amount: null });
@@ -240,9 +235,9 @@ export default function ChatScreen({ navigation }) {
         <View style={styles.userRow}>
           <View style={[styles.userBubble, item.image && !item.text && { padding: 4 }]}>
             {item.image && (
-              <Image 
-                source={{ uri: item.image }} 
-                style={[styles.chatImage, item.text && { marginBottom: 8 }]} 
+              <Image
+                source={{ uri: item.image }}
+                style={[styles.chatImage, item.text && { marginBottom: 8 }]}
               />
             )}
             {!!item.text && <Text style={styles.userText}>{item.text}</Text>}
@@ -279,67 +274,78 @@ export default function ChatScreen({ navigation }) {
     ? `http://3.111.206.12${user.avatar}`
     : user?.avatar;
 
+  // Desktop chat is centered with a max-width like WhatsApp Web / Discord
+  const chatMaxWidth = layout.isDesktop ? 860 : layout.isTablet ? 700 : null;
+
   return (
-    <SafeAreaView style={styles.root}>
+    <SafeAreaView style={[styles.root, { paddingLeft: layout.sidebarWidth }]}>
       {/* Header */}
-      <View style={styles.header}>
-        <View style={styles.headerLeft}>
-          <View style={styles.avatarSmall}>
-             {fullAvatarUrl ? (
-              <Image source={{ uri: fullAvatarUrl }} style={{ width: '100%', height: '100%', borderRadius: 18 }} />
-             ) : (
-              <Ionicons name="person" size={18} color="#fff" />
-             )}
+      <View style={[styles.header, layout.isLargeScreen && styles.headerDesktop]}>
+        <View style={[styles.headerInner, chatMaxWidth && { maxWidth: chatMaxWidth, width: '100%', alignSelf: 'center' }]}>
+          <View style={styles.headerLeft}>
+            <View style={styles.avatarSmall}>
+              {fullAvatarUrl ? (
+                <Image source={{ uri: fullAvatarUrl }} style={{ width: '100%', height: '100%', borderRadius: 18 }} />
+              ) : (
+                <Ionicons name="person" size={18} color="#fff" />
+              )}
+            </View>
+            <View>
+              <Text style={styles.headerTitle}>Financial Fluidity</Text>
+              <Text style={styles.headerSub}>{GREETING.split(' ').slice(1).join(' ')}</Text>
+            </View>
           </View>
-          <View>
-            <Text style={styles.headerTitle}>Financial Fluidity</Text>
-            <Text style={styles.headerSub}>{GREETING.split(' ').slice(1).join(' ')}</Text>
-          </View>
+          <TouchableOpacity onPress={() => navigation.navigate('ExpensesTab')} hitSlop={{top:8,bottom:8,left:8,right:8}}>
+            <Ionicons name="receipt-outline" size={22} color={Colors.onSurfaceVariant} />
+          </TouchableOpacity>
         </View>
-        <TouchableOpacity onPress={() => navigation.navigate('ExpensesTab')} hitSlop={{top:8,bottom:8,left:8,right:8}}>
-          <Ionicons name="receipt-outline" size={22} color={Colors.onSurfaceVariant} />
-        </TouchableOpacity>
       </View>
 
       {/* Messages */}
-      <FlatList
-        ref={listRef}
-        data={messages}
-        keyExtractor={(i) => i.id}
-        renderItem={renderItem}
-        contentContainerStyle={styles.list}
-        onContentSizeChange={() => listRef.current?.scrollToEnd({ animated: true })}
-        keyboardShouldPersistTaps="handled"
-        style={{ flex: 1 }}
-      />
-      
-      {/* Input bar */}
-      <View style={styles.inputBar}>
-        <TouchableOpacity onPress={pickImage} style={[styles.addBtn, { marginRight: -4 }]} activeOpacity={0.7}>
-          <Ionicons name="camera-outline" size={26} color={Colors.onSurfaceVariant} />
-        </TouchableOpacity>
-        <TextInput
-          style={styles.textIn}
-          value={input}
-          onChangeText={setInput}
-          placeholder="Type your expense..."
-          placeholderTextColor={Colors.outline}
-          multiline
-          maxLength={400}
-          onSubmitEditing={() => send(null, null)}
+      <View style={[styles.listOuter, layout.isLargeScreen && styles.listOuterDesktop]}>
+        <FlatList
+          ref={listRef}
+          data={messages}
+          keyExtractor={(i) => i.id}
+          renderItem={renderItem}
+          contentContainerStyle={[
+            styles.list,
+            chatMaxWidth && { maxWidth: chatMaxWidth, width: '100%', alignSelf: 'center' },
+          ]}
+          onContentSizeChange={() => listRef.current?.scrollToEnd({ animated: true })}
+          keyboardShouldPersistTaps="handled"
+          style={{ flex: 1, width: '100%' }}
         />
-        <TouchableOpacity style={styles.sendBtn} onPress={() => send(null, null)} disabled={sending} activeOpacity={0.8}>
-          {sending
-            ? <ActivityIndicator color="#fff" size="small" />
-            : <Ionicons name="send" size={18} color="#fff" />
-          }
-        </TouchableOpacity>
+      </View>
+
+      {/* Input bar */}
+      <View style={[styles.inputBarOuter, layout.isLargeScreen && styles.inputBarOuterDesktop]}>
+        <View style={[styles.inputBar, chatMaxWidth && { maxWidth: chatMaxWidth, width: '100%', alignSelf: 'center' }]}>
+          <TouchableOpacity onPress={pickImage} style={[styles.addBtn, { marginRight: -4 }]} activeOpacity={0.7}>
+            <Ionicons name="camera-outline" size={26} color={Colors.onSurfaceVariant} />
+          </TouchableOpacity>
+          <TextInput
+            style={styles.textIn}
+            value={input}
+            onChangeText={setInput}
+            placeholder="Type your expense..."
+            placeholderTextColor={Colors.outline}
+            multiline
+            maxLength={400}
+            onSubmitEditing={() => send(null, null)}
+          />
+          <TouchableOpacity style={styles.sendBtn} onPress={() => send(null, null)} disabled={sending} activeOpacity={0.8}>
+            {sending
+              ? <ActivityIndicator color="#fff" size="small" />
+              : <Ionicons name="send" size={18} color="#fff" />
+            }
+          </TouchableOpacity>
+        </View>
       </View>
     </SafeAreaView>
   );
 }
 
-// Render simple markdown bold
 function renderMarkdown(text) {
   const parts = text.split(/(\*\*.*?\*\*)/g);
   return parts.map((p, i) => {
@@ -358,25 +364,39 @@ function fmtTime(d) {
 function capitalize(s) { return s ? s.charAt(0).toUpperCase() + s.slice(1) : ''; }
 
 const styles = StyleSheet.create({
-  root:        { flex: 1, backgroundColor: Colors.background, paddingTop: Platform.OS === 'android' ? StatusBar.currentHeight : 0 },
-  header:      { flexDirection:'row', alignItems:'center', justifyContent:'space-between', paddingHorizontal:Spacing.lg, paddingVertical:12, borderBottomWidth:0 },
+  root:        { flex:1, backgroundColor:Colors.background, paddingTop: Platform.OS === 'android' ? StatusBar.currentHeight : 0 },
+
+  // Header
+  header:      { borderBottomWidth:0 },
+  headerDesktop:{ borderBottomWidth:1, borderBottomColor:Colors.outlineVariant+'20', backgroundColor:Colors.surfaceContainerLowest+'80' },
+  headerInner: { flexDirection:'row', alignItems:'center', justifyContent:'space-between', paddingHorizontal:Spacing.lg, paddingVertical:12 },
   headerLeft:  { flexDirection:'row', alignItems:'center', gap:10 },
   avatarSmall: { width:36, height:36, borderRadius:18, backgroundColor:Colors.primaryContainer, alignItems:'center', justifyContent:'center' },
   headerTitle: { fontSize:17, fontWeight:'700', color:Colors.primary, letterSpacing:-0.3 },
   headerSub:   { fontSize:11, color:Colors.onSurfaceVariant, marginTop:1 },
+
+  // List
+  listOuter:        { flex:1 },
+  listOuterDesktop: { alignItems:'center' },
   list:        { paddingHorizontal:Spacing.md, paddingVertical:Spacing.md, gap:10 },
-  userRow:     { alignSelf:'flex-end', alignItems:'flex-end', maxWidth:'85%' },
+
+  // Bubbles
+  userRow:     { alignSelf:'flex-end', alignItems:'flex-end', maxWidth:'75%' },
   userBubble:  { backgroundColor:Colors.primaryContainer, borderRadius:16, borderTopRightRadius:4, padding:Spacing.md },
   userText:    { color:Colors.onPrimaryContainer, fontSize:15, lineHeight:22 },
-  botRow:      { alignSelf:'flex-start', alignItems:'flex-start', maxWidth:'85%' },
+  botRow:      { alignSelf:'flex-start', alignItems:'flex-start', maxWidth:'75%' },
   botBubble:   { backgroundColor:Colors.surfaceContainerHigh, borderRadius:16, borderTopLeftRadius:4, padding:Spacing.md },
   botText:     { color:Colors.onSurface, fontSize:15, lineHeight:22 },
   timestamp:   { fontSize:10, color:Colors.onSurfaceVariant, marginTop:4, textTransform:'uppercase', letterSpacing:0.5 },
-  chatImage:   { width: 200, height: 200, borderRadius: 12, resizeMode: 'cover' },
+  chatImage:   { width:200, height:200, borderRadius:12, resizeMode:'cover' },
   chipsRow:    { flexDirection:'row', flexWrap:'wrap', gap:8, paddingLeft:4 },
   chip:        { paddingHorizontal:16, paddingVertical:10, borderRadius:Radius.full, backgroundColor:Colors.surfaceContainerHighest, borderWidth:1, borderColor:Colors.outlineVariant+'44' },
   chipText:    { color:Colors.primary, fontSize:13, fontWeight:'500' },
-  inputBar:    { flexDirection:'row', alignItems:'flex-end', gap:8, paddingHorizontal:Spacing.md, paddingVertical:12, borderTopWidth:0, backgroundColor:'transparent' },
+
+  // Input bar
+  inputBarOuter:         { },
+  inputBarOuterDesktop:  { borderTopWidth:1, borderTopColor:Colors.outlineVariant+'20', backgroundColor:Colors.surfaceContainerLowest+'60' },
+  inputBar:    { flexDirection:'row', alignItems:'flex-end', gap:8, paddingHorizontal:Spacing.md, paddingVertical:12, backgroundColor:'transparent' },
   addBtn:      { width:40, height:40, borderRadius:20, alignItems:'center', justifyContent:'center' },
   textIn:      { flex:1, backgroundColor:Colors.surfaceContainerLowest, borderRadius:Radius.full, paddingHorizontal:16, paddingVertical:10, color:Colors.onSurface, fontSize:14, maxHeight:100 },
   sendBtn:     { width:44, height:44, borderRadius:22, backgroundColor:Colors.primaryContainer, alignItems:'center', justifyContent:'center', shadowColor:Colors.primaryContainer, shadowOffset:{width:0,height:4}, shadowOpacity:0.3, shadowRadius:10, elevation:6 },

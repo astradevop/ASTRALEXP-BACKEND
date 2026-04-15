@@ -7,9 +7,11 @@ import { Ionicons } from '@expo/vector-icons';
 import { Colors, Spacing, Radius, CATEGORIES, CURRENCY_SYMBOLS } from '../theme';
 import { expensesAPI, paymentsAPI, friendsAPI } from '../services/api';
 import { useAuth } from '../context/AuthContext';
+import { useLayout } from '../hooks/useLayout';
 
 export default function AddExpenseScreen({ route, navigation }) {
   const { user } = useAuth();
+  const layout   = useLayout();
   const currSym = CURRENCY_SYMBOLS[user?.preferred_currency || 'INR'] || '₹';
   const expense = route.params?.expense; // If editing
 
@@ -93,7 +95,7 @@ export default function AddExpenseScreen({ route, navigation }) {
       </View>
 
       <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
-        <ScrollView style={styles.scroll} contentContainerStyle={styles.scrollContent} keyboardShouldPersistTaps="handled">
+        <ScrollView style={styles.scroll} contentContainerStyle={[styles.scrollContent, layout.isLargeScreen && styles.scrollContentDesktop]} keyboardShouldPersistTaps="handled">
           {/* Amount Hero */}
           <View style={styles.heroWrap}>
             <Text style={styles.currency}>{currSym}</Text>
@@ -259,6 +261,7 @@ const styles = StyleSheet.create({
   title:       { fontSize:15, fontWeight:'700', color:Colors.onSurface, letterSpacing:1, textTransform:'uppercase' },
   scroll:      { flex:1 },
   scrollContent:{ paddingHorizontal:Spacing.lg, paddingTop:Spacing.lg, paddingBottom:120 },
+  scrollContentDesktop: { paddingHorizontal: 40, maxWidth: 760, alignSelf: 'center', width: '100%' },
   heroWrap:    { flexDirection:'row', alignItems:'flex-start', justifyContent:'center', marginBottom:Spacing.lg },
   currency:    { fontSize:28, fontWeight:'700', color:Colors.onSurfaceVariant, marginTop:8, marginRight:4 },
   amtInput:    { fontSize:56, fontWeight:'800', color:Colors.tertiary, letterSpacing:-2 },

@@ -29,7 +29,12 @@
       "softwareKeyboardLayoutMode": "resize"
     },
     "web": {
-      "favicon": "./assets/favicon.png"
+      "favicon": "./assets/favicon.png",
+      "bundler": "metro",
+      "output": "single",
+      "name": "AstralExp",
+      "shortName": "AstralExp",
+      "description": "The Digital Private Vault — AI-powered expense management"
     },
     "plugins": [
       [

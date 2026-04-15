@@ -1,0 +1,103 @@
+/* AstralExp — Global Web Styles
+ * Applied only when running as web target (expo start --web).
+ * These styles do NOT affect the native app builds.
+ */
+
+/* ── Reset & base
+   ────────────────────────────────────────────────────── */
+*, *::before, *::after {
+  box-sizing: border-box;
+  -webkit-tap-highlight-color: transparent;
+}
+
+html {
+  /* Prevent iOS Safari from zooming on input focus */
+  -webkit-text-size-adjust: 100%;
+  /* Smooth scrolling everywhere */
+  scroll-behavior: smooth;
+}
+
+body {
+  margin: 0;
+  padding: 0;
+  background-color: #111417;
+  /* Anti-aliased text rendering */
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  font-feature-settings: "kern" 1, "liga" 1;
+  /* Prevent user selecting UI chrome */
+  user-select: none;
+  overflow: hidden;
+}
+
+#root {
+  width: 100vw;
+  height: 100vh;
+  overflow: hidden;
+  display: flex;
+}
+
+/* ── Scrollbar styling (webkit browsers: Chrome, Edge, Safari)
+   ────────────────────────────────────────────────────── */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: rgba(186, 195, 255, 0.15);
+  border-radius: 3px;
+  transition: background 0.2s;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(186, 195, 255, 0.3);
+}
+
+/* Firefox scrollbars */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(186, 195, 255, 0.15) transparent;
+}
+
+/* ── Text selection color
+   ────────────────────────────────────────────────────── */
+::selection {
+  background: rgba(63, 81, 181, 0.35);
+  color: #e1e2e7;
+}
+
+/* ── Inputs — allow text selection inside
+   ────────────────────────────────────────────────────── */
+input, textarea, [contenteditable] {
+  user-select: text;
+  -webkit-user-select: text;
+  outline: none;
+}
+
+/* ── Focus-visible ring (keyboard navigation a11y)
+   ────────────────────────────────────────────────────── */
+:focus-visible {
+  outline: 2px solid rgba(186, 195, 255, 0.5);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+/* ── Smooth opacity transitions for interactive elements
+   ────────────────────────────────────────────────────── */
+button, [role="button"] {
+  cursor: pointer;
+  transition: opacity 0.15s ease;
+}
+button:active, [role="button"]:active {
+  opacity: 0.75;
+}
+
+/* ── Prevent image dragging
+   ────────────────────────────────────────────────────── */
+img {
+  user-select: none;
+  -webkit-user-drag: none;
+  draggable: false;
+}
