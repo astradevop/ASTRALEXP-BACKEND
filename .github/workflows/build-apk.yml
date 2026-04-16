@@ -4,12 +4,11 @@ on:
   push:
     branches: [main]
     paths:
-      - 'ASTRALEXP-FRONTEND/**' # Only trigger if frontend changes
+      - 'ASTRALEXP-FRONTEND/**'
 
 jobs:
   build:
     runs-on: ubuntu-latest
-    # This tells EVERY step to run inside the frontend folder
     defaults:
       run:
         working-directory: ./ASTRALEXP-FRONTEND
@@ -47,15 +46,17 @@ jobs:
         run: |
           echo '{
             "android": {
-              "keystorePath": "android-release-key.jks",
-              "keystorePassword": "${{ secrets.ANDROID_KEYSTORE_PASSWORD }}",
-              "keyAlias": "${{ secrets.ANDROID_KEY_ALIAS }}",
-              "keyPassword": "${{ secrets.ANDROID_KEY_PASSWORD }}"
+              "keystore": {
+                "keystorePath": "android-release-key.jks",
+                "keystorePassword": "${{ secrets.ANDROID_KEYSTORE_PASSWORD }}",
+                "keyAlias": "${{ secrets.ANDROID_KEY_ALIAS }}",
+                "keyPassword": "${{ secrets.ANDROID_KEY_PASSWORD }}"
+              }
             }
           }' > credentials.json
 
       - name: Build APK locally
-        run: eas build -p android --profile production --local --non-interactive --credentials-path ./credentials.json
+        run: eas build -p android --profile production --local --non-interactive
         env:
           EAS_NO_VCS: 1
 
