@@ -1,9 +1,18 @@
 name: AWS EC2 Continuous Deployment
 
+# ─────────────────────────────────────────────────────────────────────────────
+# TRIGGER: Only runs when backend or web-frontend files change.
+# Mobile APK-only changes (e.g. React Native screens) will NOT trigger this.
+# ─────────────────────────────────────────────────────────────────────────────
 on:
+  workflow_dispatch:
   push:
     branches:
       - main
+    paths:
+      - 'ASTRALEXP-BACKEND/**'      # Django backend code changed
+      - 'ASTRALEXP-FRONTEND/**'     # Web build served via Nginx also needs updating
+      - '!ASTRALEXP-FRONTEND/.github/**'  # But not CI config changes
 
 jobs:
   deploy:

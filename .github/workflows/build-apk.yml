@@ -1,10 +1,17 @@
 name: Build Android APK
+
+# ─────────────────────────────────────────────────────────────────
+# TRIGGER: Only runs when frontend files change.
+# Backend changes will NOT trigger this workflow.
+# Can also be triggered manually via "Run workflow" button.
+# ─────────────────────────────────────────────────────────────────
 on:
   workflow_dispatch:
   push:
     branches: [main]
     paths:
-      - 'ASTRALEXP-FRONTEND/**'
+      - 'ASTRALEXP-FRONTEND/**'     # Only frontend changes trigger this
+      - '!ASTRALEXP-BACKEND/**'     # Explicitly ignore backend changes
 
 jobs:
   build:
@@ -20,7 +27,7 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '20' # Force Node 20
+          node-version: '20'
           cache: 'npm'
           cache-dependency-path: ASTRALEXP-FRONTEND/package-lock.json
 
@@ -41,9 +48,9 @@ jobs:
 
       - name: Verify Environment
         run: |
-          node -v
-          npm -v
-          eas --version
+          echo "Node version: $(node -v)"
+          echo "NPM version: $(npm -v)"
+          echo "EAS version: $(eas --version)"
 
       - name: Decode Keystore
         run: echo "${{ secrets.ANDROID_KEYSTORE_BASE64 }}" | base64 --decode > android-release-key.jks
@@ -67,8 +74,14 @@ jobs:
           EAS_NO_VCS: 1
           EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
 
+      - name: Cleanup secrets
+        if: always()
+        run: |
+          rm -f android-release-key.jks credentials.json
+
       - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
           name: astralexp-apk
           path: ASTRALEXP-FRONTEND/*.apk
+          retention-days: 7
