@@ -41,18 +41,18 @@ api.interceptors.response.use(
 
 // ─── Auth ─────────────────────────────────────────────────────────────────────
 export const authAPI = {
-  login:          (data) => api.post('/auth/login/', data),
-  register:       (data) => api.post('/auth/register/', data),
-  logout:         (data) => api.post('/auth/logout/', data),
-  refreshToken:   (data) => api.post('/auth/token/refresh/', data),
-  getProfile:     ()     => api.get('/auth/profile/'),
-  updateProfile:  (data) => api.patch('/auth/profile/', data, {
+  login: (data) => api.post('/auth/login/', data),
+  register: (data) => api.post('/auth/register/', data),
+  logout: (data) => api.post('/auth/logout/', data),
+  refreshToken: (data) => api.post('/auth/token/refresh/', data),
+  getProfile: () => api.get('/auth/profile/'),
+  updateProfile: (data) => api.patch('/auth/profile/', data, {
     headers: { 'Content-Type': 'multipart/form-data' },
   }),
   changePassword: (data) => api.post('/auth/change-password/', data),
-  deleteAccount:  ()     => api.delete('/auth/profile/'),
-  createSubIntent:(data) => api.post('/auth/subscription/create-intent/', data),
-  verifySub:      (data) => api.post('/auth/subscription/verify/', data),
+  deleteAccount: () => api.delete('/auth/profile/'),
+  createSubIntent: (data) => api.post('/auth/subscription/create-intent/', data),
+  verifySub: (data) => api.post('/auth/subscription/verify/', data),
 };
 
 // ─── Chat ─────────────────────────────────────────────────────────────────────
@@ -60,34 +60,42 @@ export const chatAPI = {
   parse: (data) => api.post('/chat/parse/', data),
 };
 
+// ─── Analytics ────────────────────────────────────────────────────────────────
+export const analyticsAPI = {
+  getSummary: () => api.get('/analytics/summary/'),
+  getPredictions: () => api.get('/analytics/predictions/'),
+  getUnusual: () => api.get('/analytics/unusual-expenses/'),
+  exportCSV: () => api.get('/analytics/export-csv/'),
+};
+
 // ─── Expenses ─────────────────────────────────────────────────────────────────
 export const expensesAPI = {
-  list:   (params) => api.get('/expenses/', { params }),
-  create: (data)   => api.post('/expenses/', data),
-  update: (id, d)  => api.patch(`/expenses/${id}/`, d),
-  delete: (id)     => api.delete(`/expenses/${id}/`),
+  list: (params) => api.get('/expenses/', { params }),
+  create: (data) => api.post('/expenses/', data),
+  update: (id, d) => api.patch(`/expenses/${id}/`, d),
+  delete: (id) => api.delete(`/expenses/${id}/`),
   creditsGiven: () => api.get('/expenses/credits-given/'),
-  creditsOwed:  () => api.get('/expenses/credits-owed/'),
-  markPaid:     (id, data) => api.patch(`/expenses/splits/${id}/mark-paid/`, data),
-  clearAll:     () => api.delete('/expenses/clear-all/'),
+  creditsOwed: () => api.get('/expenses/credits-owed/'),
+  markPaid: (id, data) => api.patch(`/expenses/splits/${id}/mark-paid/`, data),
+  clearAll: () => api.delete('/expenses/clear-all/'),
 };
 
 // ─── Payment Methods ──────────────────────────────────────────────────────────
 export const paymentsAPI = {
-  list:   ()       => api.get('/payment-methods/'),
-  create: (data)   => api.post('/payment-methods/', data),
-  update: (id, d)  => api.patch(`/payment-methods/${id}/`, d),
-  delete: (id)     => api.delete(`/payment-methods/${id}/`),
-  clearAll: ()     => api.delete('/payment-methods/clear-all/'),
+  list: () => api.get('/payment-methods/'),
+  create: (data) => api.post('/payment-methods/', data),
+  update: (id, d) => api.patch(`/payment-methods/${id}/`, d),
+  delete: (id) => api.delete(`/payment-methods/${id}/`),
+  clearAll: () => api.delete('/payment-methods/clear-all/'),
 };
 
 // ─── Friends ──────────────────────────────────────────────────────────────────
 export const friendsAPI = {
-  search:   (q)      => api.get('/friends/search/', { params: { q } }),
-  list:     ()       => api.get('/friends/list_friends/'),
-  pending:  ()       => api.get('/friends/pending_requests/'),
-  request:  (toId)   => api.post('/friends/', { to_user: toId }),
-  respond:  (id, s)  => api.post(`/friends/${id}/respond/`, { status: s }),
+  search: (q) => api.get('/friends/search/', { params: { q } }),
+  list: () => api.get('/friends/list_friends/'),
+  pending: () => api.get('/friends/pending_requests/'),
+  request: (toId) => api.post('/friends/', { to_user: toId }),
+  respond: (id, s) => api.post(`/friends/${id}/respond/`, { status: s }),
 };
 
 export default api;

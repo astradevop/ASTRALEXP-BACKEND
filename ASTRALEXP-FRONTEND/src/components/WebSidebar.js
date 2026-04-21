@@ -4,10 +4,11 @@ import { Ionicons } from '@expo/vector-icons';
 import { Colors } from '../theme';
 
 const NAV_ITEMS = [
-  { route: 'ChatTab',     label: 'Chat',     icon: 'chatbubble',  iconOut: 'chatbubble-outline'  },
-  { route: 'ExpensesTab', label: 'Expenses', icon: 'receipt',     iconOut: 'receipt-outline'     },
-  { route: 'PaymentsTab', label: 'Vaults',   icon: 'wallet',      iconOut: 'wallet-outline'      },
-  { route: 'ProfileTab',  label: 'Profile',  icon: 'person',      iconOut: 'person-outline'      },
+  { route: 'ChatTab',      label: 'Chat',     icon: 'chatbubble',  iconOut: 'chatbubble-outline'  },
+  { route: 'AnalyticsTab', label: 'Insights', icon: 'stats-chart', iconOut: 'stats-chart-outline'},
+  { route: 'ExpensesTab',  label: 'Expenses', icon: 'receipt',     iconOut: 'receipt-outline'     },
+  { route: 'PaymentsTab',  label: 'Vaults',   icon: 'wallet',      iconOut: 'wallet-outline'      },
+  { route: 'ProfileTab',   label: 'Profile',  icon: 'person',      iconOut: 'person-outline'      },
 ];
 
 /**

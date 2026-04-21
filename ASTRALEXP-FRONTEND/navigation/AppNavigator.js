@@ -13,6 +13,7 @@ import LoginScreen       from '../src/screens/LoginScreen';
 import RegisterScreen    from '../src/screens/RegisterScreen';
 import ChatScreen        from '../src/screens/ChatScreen';
 import ExpensesScreen    from '../src/screens/ExpensesScreen';
+import AnalyticsScreen   from '../src/screens/AnalyticsScreen';
 import AddExpenseScreen  from '../src/screens/AddExpenseScreen';
 import PaymentsScreen    from '../src/screens/PaymentsScreen';
 import ProfileScreen     from '../src/screens/ProfileScreen';
@@ -77,8 +78,9 @@ function MainTabs() {
         // tabBar renders ONLY the sidebar — screens are rendered by React Navigation
         tabBar={(props) => <DesktopSidebar {...props} />}
       >
-        <Tab.Screen name="ChatTab"     component={ChatScreen}     options={{ title: 'Chat' }} />
-        <Tab.Screen name="ExpensesTab" component={ExpensesScreen} options={{ title: 'Expenses' }} />
+        <Tab.Screen name="ChatTab"      component={ChatScreen}      options={{ title: 'Chat' }} />
+        <Tab.Screen name="AnalyticsTab" component={AnalyticsScreen} options={{ title: 'Insights' }} />
+        <Tab.Screen name="ExpensesTab"  component={ExpensesScreen}  options={{ title: 'Expenses' }} />
         <Tab.Screen name="PaymentsTab" component={PaymentsScreen} options={{ title: 'Vaults' }} />
         <Tab.Screen name="ProfileTab"  component={ProfileScreen}  options={{ title: 'Profile' }} />
       </Tab.Navigator>
@@ -108,16 +110,18 @@ function MainTabs() {
         tabBarLabelStyle: { fontSize: 10, fontWeight: '700', letterSpacing: 0.5 },
         tabBarIcon: ({ focused, color }) => {
           let iconName;
-          if      (route.name === 'ChatTab')     iconName = focused ? 'chatbubble' : 'chatbubble-outline';
-          else if (route.name === 'ExpensesTab') iconName = focused ? 'receipt'    : 'receipt-outline';
-          else if (route.name === 'PaymentsTab') iconName = focused ? 'wallet'     : 'wallet-outline';
-          else if (route.name === 'ProfileTab')  iconName = focused ? 'person'     : 'person-outline';
+          if      (route.name === 'ChatTab')      iconName = focused ? 'chatbubble' : 'chatbubble-outline';
+          else if (route.name === 'AnalyticsTab') iconName = focused ? 'stats-chart': 'stats-chart-outline';
+          else if (route.name === 'ExpensesTab')  iconName = focused ? 'receipt'    : 'receipt-outline';
+          else if (route.name === 'PaymentsTab')  iconName = focused ? 'wallet'     : 'wallet-outline';
+          else if (route.name === 'ProfileTab')   iconName = focused ? 'person'     : 'person-outline';
           return <Ionicons name={iconName} size={22} color={color} />;
         },
       })}
     >
-      <Tab.Screen name="ChatTab"     component={ChatScreen}     options={{ tabBarLabel: 'Chat' }} />
-      <Tab.Screen name="ExpensesTab" component={ExpensesScreen} options={{ tabBarLabel: 'Expenses' }} />
+      <Tab.Screen name="ChatTab"      component={ChatScreen}      options={{ tabBarLabel: 'Chat' }} />
+      <Tab.Screen name="AnalyticsTab" component={AnalyticsScreen} options={{ tabBarLabel: 'Insights' }} />
+      <Tab.Screen name="ExpensesTab"  component={ExpensesScreen}  options={{ tabBarLabel: 'Expenses' }} />
       <Tab.Screen name="PaymentsTab" component={PaymentsScreen} options={{ tabBarLabel: 'Vaults' }} />
       <Tab.Screen name="ProfileTab"  component={ProfileScreen}  options={{ tabBarLabel: 'Profile' }} />
     </Tab.Navigator>

@@ -24,6 +24,9 @@ urlpatterns = [
 
     # Friends
     path("api/friends/", include("apps.friends.urls")),
+
+    # AI/ML Analytics
+    path("api/analytics/", include("apps.analytics.urls")),
 ]
 
 # Serve media files in development

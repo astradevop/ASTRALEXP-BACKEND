@@ -70,12 +70,18 @@ class ParseExpenseView(APIView):
             else:
                 friends.append(f.from_user)
 
+        # Fetch payment methods for validation
+        valid_payment_methods = list(
+            PaymentMethod.objects.filter(user=request.user).values_list("name", flat=True)
+        )
+
         # ── Call Gemini ──────────────────────────────────────────────────────
         parsed = parse_expense_from_text(
             message, 
             image_base64=image_base64, 
             previous_state=previous_state, 
-            friends=friends
+            friends=friends,
+            valid_payment_methods=valid_payment_methods
         )
 
         if not parsed.get("success"):
@@ -85,7 +91,7 @@ class ParseExpenseView(APIView):
             )
 
         # ── Build follow-up prompt for missing fields ─────────────────────────
-        follow_up = _build_follow_up(parsed.get("missing_fields", []))
+        follow_up = _build_follow_up(parsed)
 
         # ── Auto-save if requested and data is complete ───────────────────────
         saved_expense = None
@@ -104,8 +110,14 @@ class ParseExpenseView(APIView):
 
 # ─── Helpers ─────────────────────────────────────────────────────────────────
 
-def _build_follow_up(missing_fields: list) -> str | None:
+def _build_follow_up(parsed: dict) -> str | None:
     """Generate a human-friendly question for missing expense fields."""
+    missing_fields = parsed.get("missing_fields", [])
+    unrecognized_pm = parsed.get("unrecognized_payment_method")
+
+    if unrecognized_pm:
+        return f"I couldn't find '{unrecognized_pm}' in your payment methods. Please choose an existing method or create a new one."
+
     if not missing_fields:
         return None
 

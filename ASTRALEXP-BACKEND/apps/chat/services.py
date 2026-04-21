@@ -77,13 +77,162 @@ Rules:
 """
 
 
+# ─── Rule-Based Fast-Path Parser (Feature 3) ───────────────────────────
+
+# Keyword-to-category map for the rule-based parser
+_CATEGORY_KEYWORDS: dict[str, list[str]] = {
+    "food":         ["food", "lunch", "dinner", "breakfast", "biryani", "pizza", "burger", "chai", "coffee", "snack", "meal", "restaurant", "cafe", "eatery"],
+    "transport":    ["transport", "uber", "ola", "auto", "cab", "bus", "train", "metro", "petrol", "fuel", "diesel", "rickshaw", "taxi"],
+    "groceries":    ["grocery", "groceries", "vegetables", "fruits", "supermarket", "kirana"],
+    "shopping":     ["shopping", "clothes", "shirt", "shoes", "amazon", "flipkart", "mall"],
+    "health":       ["medicine", "pharmacy", "doctor", "hospital", "clinic", "medical", "health"],
+    "utilities":    ["electricity", "water", "gas", "wifi", "internet", "bill", "recharge", "utility"],
+    "entertainment":["movie", "cinema", "netflix", "hotstar", "spotify", "gaming", "game", "entertainment", "concert"],
+    "education":    ["course", "book", "tuition", "school", "college", "fees", "education"],
+    "travel":       ["hotel", "flight", "trip", "holiday", "vacation", "travel", "train ticket", "bus ticket"],
+    "subscription": ["subscription", "premium", "membership", "monthly plan"],
+    "rent":         ["rent", "pg", "hostel", "housing"],
+}
+
+# Payment method name → type hints for the rule-based parser
+_PM_TYPE_HINTS: dict[str, str] = {
+    "gpay": "upi", "google pay": "upi", "phonepe": "upi", "paytm": "upi",
+    "bhim": "upi", "upi": "upi",
+    "cash": "cash",
+    "card": "card", "debit card": "card", "credit card": "card",
+    "hdfc": "card", "icici": "card", "sbi card": "card", "axis": "card",
+    "net banking": "bank", "neft": "bank", "imps": "bank",
+    "wallet": "wallet", "freecharge": "wallet", "mobikwik": "wallet",
+}
+
+
+def _guess_category(text: str) -> str | None:
+    """Return the best matching category from keyword lookup, or None."""
+    lower = text.lower()
+    for category, keywords in _CATEGORY_KEYWORDS.items():
+        if any(kw in lower for kw in keywords):
+            return category
+    return None
+
+
+def _guess_payment_method(text: str) -> tuple[str | None, str | None]:
+    """
+    Return (payment_method_name, payment_method_type) guessed from the text.
+    Returns (None, None) if no payment method is detected.
+    """
+    lower = text.lower()
+    for keyword, pm_type in _PM_TYPE_HINTS.items():
+        if keyword in lower:
+            # Capitalise the raw keyword as the method name (e.g. 'gpay' → 'GPay')
+            name_map = {
+                "gpay": "GPay", "google pay": "Google Pay", "phonepe": "PhonePe",
+                "paytm": "Paytm", "bhim": "BHIM", "upi": "UPI",
+                "cash": "Cash", "card": "Card", "debit card": "Debit Card",
+                "credit card": "Credit Card", "net banking": "Net Banking",
+                "neft": "NEFT", "imps": "IMPS", "wallet": "Wallet",
+                "freecharge": "FreeCharge", "mobikwik": "MobiKwik",
+            }
+            return name_map.get(keyword, keyword.title()), pm_type
+    return None, None
+
+
+# Patterns to extract an amount from simple strings like:
+#   "paid 200", "spent 350.50", "200 rs", "₹500"
+_AMOUNT_PATTERNS = [
+    re.compile(r'(?:paid|spent|spend|pay|cost|costs?|\u20b9)\s*(?:rs\.?\s*)?([\d,]+(?:\.\d{1,2})?)', re.IGNORECASE),
+    re.compile(r'([\d,]+(?:\.\d{1,2})?)\s*(?:rs|rupees?|\/-|INR)', re.IGNORECASE),
+    re.compile(r'^(?:rs\.?\s*)?([\d,]+(?:\.\d{1,2})?)$', re.IGNORECASE),  # bare number
+]
+
+
+def try_rule_based_parse(user_message: str) -> dict | None:
+    """
+    Attempt to parse a simple expense message using only regex + keyword rules.
+
+    Returns a partial expense dict (same keys as the Gemini response) if the
+    amount can be extracted, or None to signal that Gemini should be called.
+
+    This is a confidence-gating fast-path: we only bypass Gemini when we can
+    extract a numeric amount.  Category and payment method are best-effort.
+    The result is passed back to parse_expense_from_text which will call Gemini
+    only when is_complete is still False after the rule-based pass.
+    """
+    if not user_message:
+        return None
+
+    amount = None
+    for pattern in _AMOUNT_PATTERNS:
+        m = pattern.search(user_message)
+        if m:
+            try:
+                amount = round(float(m.group(1).replace(",", "")), 2)
+                break
+            except (ValueError, IndexError):
+                continue
+
+    # No amount found → can't avoid Gemini
+    if not amount or amount <= 0:
+        return None
+
+    category        = _guess_category(user_message)
+    pm_name, pm_type = _guess_payment_method(user_message)
+
+    is_complete = bool(amount and category and pm_name)
+    missing = []
+    if not category:
+        missing.append("category")
+    if not pm_name:
+        missing.append("payment_method")
+
+    logger.info(
+        f"Rule-based parse succeeded: amount={amount}, category={category}, "
+        f"pm={pm_name}, complete={is_complete}"
+    )
+
+    return {
+        "success":              True,
+        "amount":               amount,
+        "category":             category or "other",
+        "payment_method_name":  pm_name,
+        "payment_method_type":  pm_type,
+        "expense_time":         None,   # Gemini handles temporal reasoning
+        "note":                 None,
+        "is_complete":          is_complete,
+        "missing_fields":       missing,
+        "splits":               [],
+        "needs_friend_selection": False,
+    }
+
+
 # ─── Parser ───────────────────────────────────────────────────────────────────
 
-def parse_expense_from_text(user_message: str, image_base64: str = None, previous_state: dict = None, friends: list = None) -> dict:
+def parse_expense_from_text(user_message: str, image_base64: str = None, previous_state: dict = None, friends: list = None, valid_payment_methods: list[str] = None) -> dict:
     """
-    Send user message and/or image to Gemini and get structured expense data back.
+    Parse expense from natural language via a two-stage pipeline:
+
+    Stage 1 (Rule-Based Fast Path):
+        Try to extract amount, category, and payment method using regex and
+        keyword rules. If all three fields are found, skip the Gemini API call
+        entirely — this saves latency for clear, simple inputs.
+
+    Stage 2 (Gemini AI Fallback):
+        If the rule-based pass leaves any required field missing, send the full
+        message (plus context) to Gemini for natural-language understanding.
+
+    Always validates and sanitises the combined result before returning.
     """
     current_datetime = datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M:%S UTC")
+
+    # ── Stage 1: Rule-based fast path (skip for image-only messages) ────────
+    if user_message and not image_base64 and not previous_state:
+        rule_result = try_rule_based_parse(user_message)
+        if rule_result:
+            rule_result = _validate_and_clean(rule_result, user_message, valid_payment_methods)
+            if rule_result.get("is_complete"):
+                # We have everything we need — no Gemini call required
+                return rule_result
+            logger.info("Rule-based parse incomplete; escalating to Gemini with partial hint.")
+
     
     friends_context = "[]"
     if friends:
@@ -154,7 +303,7 @@ def parse_expense_from_text(user_message: str, image_base64: str = None, previou
                             if not parsed.get(key) or parsed.get(key) == "other":
                                 parsed[key] = previous_state[key]
 
-                return _validate_and_clean(parsed, user_message)
+                return _validate_and_clean(parsed, user_message, valid_payment_methods)
 
             except (json.JSONDecodeError, Exception) as e:
                 last_error = e
@@ -177,7 +326,7 @@ def parse_expense_from_text(user_message: str, image_base64: str = None, previou
     return _error_response("The AI service is currently overloaded. Please try again in a minute.")
 
 
-def _validate_and_clean(data: dict, user_message: str) -> dict:
+def _validate_and_clean(data: dict, user_message: str, valid_payment_methods: list[str] = None) -> dict:
     """Sanitize and validate the parsed fields."""
 
     # Clamp category
@@ -187,6 +336,20 @@ def _validate_and_clean(data: dict, user_message: str) -> dict:
     # Clamp payment type
     if data.get("payment_method_type") not in VALID_PAYMENT_TYPES:
         data["payment_method_type"] = "other"
+
+    # Validate payment method against user's actual methods if provided
+    pm_name = data.get("payment_method_name")
+    if pm_name and valid_payment_methods is not None:
+        matched = False
+        lower_pm_name = pm_name.lower()
+        for valid_pm in valid_payment_methods:
+            if valid_pm.lower() == lower_pm_name:
+                data["payment_method_name"] = valid_pm
+                matched = True
+                break
+        if not matched:
+            data["unrecognized_payment_method"] = pm_name
+            data["payment_method_name"] = None
 
     # Ensure amount is a positive number
     try:
@@ -264,4 +427,5 @@ def _error_response(message: str) -> dict:
         "note": None,
         "is_complete": False,
         "missing_fields": [],
+        "unrecognized_payment_method": None,
     }

@@ -1,4 +1,9 @@
 annotated-types==0.7.0
+razorpay
+python-decouple
+numpy>=1.26.0
+pandas>=2.2.0
+scikit-learn>=1.4.0
 anyio==4.12.1
 asgiref==3.11.1
 certifi==2026.2.25
